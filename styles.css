@@ -1,13 +1,15 @@
 #ss_plugin_host_container{
-	right: 0;
 	top: 35px;
 	width: 15%;
-	background: #008aff;
+/*	background: #008aff;*/
+    background: #303030;
 	z-index: 99999999999999999;
     padding: 0 7px 0 7px;
     height: calc(100% - 35px);
     position: fixed;
     overflow-y: auto;
+    transition: right 1s;
+    right: -17%;
 }
 
 #ss_plugin_host_container .ss_img_div{
@@ -19,6 +21,7 @@
     border: 1px solid white;
 }
 
+
 #ss_plugin_host_container .ss_img_div img{
 	width: 100%;
 }
@@ -28,6 +31,11 @@
     height: auto;
     margin: 7px 0 7px 0;
     position: relative;
+}
+
+#ss_plugin_host_container .ss_images .ss_img_div.selected{
+    outline: 3px solid #d9534f;
+    outline-offset: -3px;   
 }
 
 #ss_tools{
@@ -41,8 +49,12 @@
     background: #ffffff;
     border-width: 2px 2px 0px 2px;
     border-style: solid;
-    border-color: #008aff;
+/*    border-color: #008aff;*/
+    border-color: #303030;
     padding: 0px 5px;
+    transition: right 1s;
+    right: -17%;
+    
 }
 
 #ss_tools ul{
@@ -52,23 +64,73 @@
 }
 
 #ss_tools a{
-	font-size: 25px;
+	font-size: 20px;
 	color: #008aff;
 	padding: 5px; 
 }
 
 #ss_tools li{
 	display: block;
-	line-height: 1.4;
+	line-height: 1.7;
 }
 
-#ss_tools #startCapture{
+#ss_tools a#startCapture{
 	color: #2e6da4;
 }
-#ss_tools #stopCapture{
+#ss_tools a#stopCapture{
 	color: #d9534f;
 }
 
-#ss_tools #captureManually{
+#ss_tools a#captureManually{
 	color: #449d44;
+}
+
+#ss_tools a#removeSS{
+	color: #d9534f;
+}
+
+#ss_tools a#pluginHelp{
+	color: #303030;
+}
+
+/*
+#ss_tools #menuSeparator{
+    color: #303030;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+}
+*/
+
+#ss_tools #li_removeSS, #ss_tools #li_pluginHelp{
+    right: 0;
+    position: absolute;
+}
+
+#ss_tools #li_removeSS{
+    right: 25px;
+}
+
+
+#handlerDiv{
+    position: fixed;
+    top: 0px;
+    width: 2%;
+    color: white;
+    height: 35px;
+    box-shadow: rgb(104, 101, 101) 0px 3px 7px 0px;
+    z-index: 2147483647;
+    background: rgb(48, 48, 48);
+    padding: 0px 5px;
+    right: 0%;
+    font-weight: 700;
+    text-align: center;
+    line-height: 2.2;
+    transition: right .9s;
+    
+}
+
+#handlerDiv a{
+    text-decoration: none;
+    color: white;
 }

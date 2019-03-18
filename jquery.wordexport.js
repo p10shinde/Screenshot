@@ -1,7 +1,7 @@
 if (typeof jQuery !== "undefined" && typeof saveAs !== "undefined") {
     (function($) {
         $.fn.wordExport = function(fileName) {
-            fileName = typeof fileName !== 'undefined' ? fileName : "jQuery-Word-Export";
+            fileName = typeof fileName !== 'undefined' ? fileName : "EasySS_word_export";
             var static = {
                 mhtml: {
                     top: "Mime-Version: 1.0\nContent-Base: " + location.href + "\nContent-Type: Multipart/related; boundary=\"NEXT.ITEM-BOUNDARY\";type=\"text/html\"\n\n--NEXT.ITEM-BOUNDARY\nContent-Type: text/html; charset=\"utf-8\"\nContent-Location: " + location.href + "\n\n<!DOCTYPE html>\n<html>\n_html_</html>",
@@ -57,7 +57,7 @@ if (typeof jQuery !== "undefined" && typeof saveAs !== "undefined") {
                 mhtmlBottom += "Content-Location: " + images[i].location + "\n";
                 mhtmlBottom += "Content-Type: " + images[i].type + "\n";
                 mhtmlBottom += "Content-Transfer-Encoding: " + images[i].encoding + "\n\n";
-                mhtmlBottom += images[i].data + "\n\n";
+                mhtmlBottom += images[i].data + "\n\n\n\n";
             }
             mhtmlBottom += "--NEXT.ITEM-BOUNDARY--";
 
@@ -65,7 +65,8 @@ if (typeof jQuery !== "undefined" && typeof saveAs !== "undefined") {
             var styles = "";
 
             // Aggregate parts of the file together
-            var fileContent = static.mhtml.top.replace("_html_", static.mhtml.head.replace("_styles_", styles) + static.mhtml.body.replace("_body_", markup.html())) + mhtmlBottom;
+            var markupNew = markup.html().replace(/<\/div>/g,'</div><br>');
+            var fileContent = static.mhtml.top.replace("_html_", static.mhtml.head.replace("_styles_", styles) + static.mhtml.body.replace("_body_", markupNew)) + mhtmlBottom;
 
             // Create a Blob with the file contents
             var blob = new Blob([fileContent], {

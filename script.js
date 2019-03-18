@@ -1,23 +1,40 @@
 // chrome.runtime.sendMessage({message: 'Hello'});
 
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+    var imges = changes['images']['newValue'];
+    deleteImageNodes();
+    imges.forEach(function(img, index, arr){
+        var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');imgDiv.id=img.id;
+        var imgTag = document.createElement('img');imgTag.src=img.data;
+        imgDiv.appendChild(imgTag.cloneNode(true));
+        document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+    })
+    
+});
+
 function getToolsElement(){
 	var elTools = document.createElement('div');
 	elTools.id = 'ss_tools';
 
 	var toolList = document.createElement('ul');
 	toolList.id = "toolList";
-	var buttonList = ['fa-play-circle','fa-stop-circle', 'fa-camera', 'fa-file-word'];
-	var buttonListClasses = ['far','far', 'fas', 'fas'];
-	var buttonIds = ['startCapture','stopCapture', 'captureManually', 'exportToWord'];
+	var buttonList = [/*'fa-play-circle',*/'fa-stop-circle', 'fa-camera', 'fa-file-word', 'fa-trash-alt', 'fa-question-circle'];
+	var buttonListClasses = [/*'far',*/'far', 'fas', 'fas', 'far', 'far'];
+    var buttonTooltips = [/*'',*/ 'Clear', 'Capture', 'Export', 'Delete', 'ALT+S : Take Screenshot\nALT+A : Delete Selected Screenshot']
+	var buttonIds = [/*'startCapture',*/'stopCapture', 'captureManually', 'exportToWord', 'removeSS', 'pluginHelp'];
 	buttonList.forEach(function(className, index, arr){
 		var _li = document.createElement('li');
 		var _i = document.createElement('i');
 		var _a = document.createElement('a');
+        
+        _li.id="li_" + buttonIds[index];
 
 		_a.href="javascript:void(0);";
 		_a.id=buttonIds[index];
 		_i.classList.add(buttonListClasses[index]);
 		_i.classList.add(className);
+        _li.title = buttonTooltips[index];
+        
 		_a.appendChild(_i);
 		_li.appendChild(_a);
 		toolList.appendChild(_li);
@@ -32,41 +49,131 @@ function getImagesElement(){
 	 return elImages;
 }
 
+function getHandler(){
+    var handlerDiv = document.createElement('div');
+    var handlerIcon = document.createElement('i');
+    var handlerAnchor = document.createElement('a');
+    handlerIcon.classList.add('fas');
+    handlerIcon.classList.add('fa-arrow-left');
+    handlerAnchor.href="javascript:void(0);";
+    
+    handlerDiv.id="handlerDiv";
+    handlerAnchor.appendChild(handlerIcon);
+    handlerDiv.appendChild(handlerAnchor);
+    return handlerDiv;
+    
+}
+
+function getImageId(){
+    return Math.floor(Math.random()*9000000);
+}
+
+function removeSS(){
+    var idToDelte = parseInt($(".ss_img_div.selected").attr('id'))
+    if(!_.isNaN(idToDelte)){
+        deleteImageNodes();
+        chrome.storage.local.get('images', function(result) {
+            var fliteredImages = _.reject(result.images, function(el) { return el.id === idToDelte; });
+            chrome.storage.local.set({images : fliteredImages});
+
+        })
+    }
+}
+
+function showPluginHelp(){
+    
+}
+
 function addListeners(){
-	document.getElementById("captureManually").addEventListener('click', function(event){
-		document.querySelector('#ss_plugin_host_container').style.display = "none"
+    function captureManually(){
+        document.querySelector('#ss_plugin_host_container').style.display = "none"
         document.querySelector('#ss_tools').style.display = "none"
+        document.querySelector('#handlerDiv').style.display = "none"
         setTimeout(function(){
 			chrome.runtime.sendMessage({action: 'captureManually'});
         },10);
+    }
+    
+    var map = {};
+    document.addEventListener('keydown', function(event){
+        console.log(event.keyCode);
+        var e = e || event; // to deal with IE
+        map[e.keyCode] = e.type == 'keydown';
+        if(map[18] && map[83]){ // ALT+S
+            captureManually();
+            map = {};
+        }
+        if(map[18] && map[65]){ // ALT+A
+            removeSS();
+            map = {};
+        }
+    });
+    
+	document.getElementById("captureManually").addEventListener('click', function(event){
+		captureManually();
 	});
 
-	document.getElementById("startCapture").addEventListener('click', function(event){
-		chrome.storage.local.set({images : []}, function (dt) {
-			if(document.querySelector('a#startCapture i').classList.contains('far')){
-				document.querySelector('a#startCapture i').classList = '';
-				document.querySelector('a#startCapture i').classList.add('fas');
-				document.querySelector('a#startCapture i').classList.add('fa-pause');
-			}else{
-				document.querySelector('a#startCapture i').classList = '';
-				document.querySelector('a#startCapture i').classList.add('far');
-				document.querySelector('a#startCapture i').classList.add('fa-play-circle');
-			}
-	        console.log("Store created");
-	        deleteImageNodes();
-	        loadPreviousImages()
-	    });
-	});
+//	document.getElementById("startCapture").addEventListener('click', function(event){
+//		chrome.storage.local.set({images : []}, function (dt) {
+//			if(document.querySelector('a#startCapture i').classList.contains('far')){
+//				document.querySelector('a#startCapture i').classList = '';
+//				document.querySelector('a#startCapture i').classList.add('fas');
+//				document.querySelector('a#startCapture i').classList.add('fa-pause');
+//                chrome.runtime.sendMessage({action: 'capture_status', data: 'on'});
+//                //started
+//			}else{
+//				document.querySelector('a#startCapture i').classList = '';
+//				document.querySelector('a#startCapture i').classList.add('far');
+//				document.querySelector('a#startCapture i').classList.add('fa-play-circle');
+//                chrome.runtime.sendMessage({action: 'capture_status', data: 'paused'});
+//                //paused
+//			}
+//	        console.log("Store created");
+//	        deleteImageNodes();
+//	        loadPreviousImages()
+//	    });
+//	});
 
 	document.getElementById("stopCapture").addEventListener('click', function(event){
 		chrome.storage.local.set({images : []}, function (dt) {
-			document.querySelector('a#startCapture i').classList = '';
-			document.querySelector('a#startCapture i').classList.add('far');
-			document.querySelector('a#startCapture i').classList.add('fa-play-circle');
+//			document.querySelector('a#startCapture i').classList = '';
+//			document.querySelector('a#startCapture i').classList.add('far');
+//			document.querySelector('a#startCapture i').classList.add('fa-play-circle');
 	        console.log("Store reinitialised");
 	        deleteImageNodes();
 	        loadPreviousImages();
+            chrome.runtime.sendMessage({action: 'capture_status', data: 'stopped'});
 	    });
+	});
+    
+    document.getElementById("exportToWord").addEventListener('click', function(event){
+		$(".ss_images").wordExport();
+	});
+    
+    $("#ss_plugin_host_container").on('click', '.ss_img_div', function(event){
+		$(".ss_img_div").removeClass('selected');
+        $(this).addClass('selected');
+	});
+    
+    document.getElementById("removeSS").addEventListener('click', removeSS);
+    
+    document.getElementById("pluginHelp").addEventListener('click', showPluginHelp);
+    
+    document.getElementById("handlerDiv").addEventListener('click', function(event){
+		
+        if(document.querySelector("#handlerDiv i").classList.contains('fa-arrow-right')){
+            document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-right');
+            document.querySelector("#handlerDiv i").classList.add('fa-arrow-left');
+            document.querySelector("#ss_plugin_host_container").style.right="-17%";
+            document.querySelector("#ss_tools").style.right="-17%";
+            document.querySelector("#handlerDiv").style.right="0";
+        }else{
+            document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-left');
+            document.querySelector("#handlerDiv i").classList.add('fa-arrow-right');
+            document.querySelector("#ss_plugin_host_container").style.right="0";
+            document.querySelector("#ss_tools").style.right="0";
+            document.querySelector("#handlerDiv").style.right="15.9%";
+        }
 	});
 }
 
@@ -78,16 +185,20 @@ function deleteImageNodes(){
 }
 
 function loadPreviousImages(){
-
-	chrome.storage.local.get('images', function(result) {
-		console.log(result);
-		result.images.forEach(function(img, index, arr){
-			var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
-    		var imgTag = document.createElement('img');imgTag.src=img.data;
-    		imgDiv.appendChild(imgTag.cloneNode(true));
-    		document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
-		})
-    });
+    chrome.storage.local.get('images', function (dt) { 
+        if(Object.entries(dt).length === 0 && dt.constructor === Object){
+            chrome.storage.local.set({images : []}, function (dt) {})
+        }
+        chrome.storage.local.get('images', function(result) {
+            result.images.forEach(function(img, index, arr){
+                var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
+                var imgTag = document.createElement('img');imgTag.src=img.data;
+                imgDiv.appendChild(imgTag.cloneNode(true));
+                document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+            })
+        });
+    })
+	
 
 }
 chrome.runtime.onMessage.addListener(
@@ -98,6 +209,8 @@ chrome.runtime.onMessage.addListener(
 	        ss_plugin_host_container.id='ss_plugin_host_container';
 
 	        ss_plugin_host_container.appendChild(getImagesElement());
+	        document.body.appendChild(getHandler());
+            
 	        document.body.appendChild(getToolsElement());
 
 	        document.body.appendChild(ss_plugin_host_container);
@@ -109,24 +222,36 @@ chrome.runtime.onMessage.addListener(
 	    if(request.status === 'on'){
 	        document.querySelector('#ss_plugin_host_container').style.display = "block"
 	        document.querySelector('#ss_tools').style.display = "block"
+            document.querySelector('#handlerDiv').style.display = "block"
 	    }else{
 	        document.querySelector('#ss_plugin_host_container').style.display = "none"
 	        document.querySelector('#ss_tools').style.display = "none"
+            document.querySelector('#handlerDiv').style.display = "none"
 	    }
 	    sendResponse({response: "toggled"});
     }else if(request.action == "captureManuallyResponse"){
     	document.querySelector('#ss_plugin_host_container').style.display = "block"
         document.querySelector('#ss_tools').style.display = "block"
-    	var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
-    	var imgTag = document.createElement('img');imgTag.src=request.data;
-    	imgDiv.appendChild(imgTag.cloneNode(true));
-    	document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+        document.querySelector('#handlerDiv').style.display = "block"
+        var selectedImageId = parseInt($(".ss_img_div.selected").attr('id'))
+//    	var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
+//    	var imgTag = document.createElement('img');imgTag.src=request.data;
+//    	imgDiv.appendChild(imgTag.cloneNode(true));
+//    	document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
     	chrome.storage.local.get('images', function(result) {
-    		console.log(result);
-    		result.images.push({data: request.data});
+            console.log(result)
+            if(_.isNaN(parseInt($(".ss_img_div.selected").attr('id')))){ //No image selected. Add to end
+    		  result.images.push({id: getImageId(),data: request.data});
+            }else{ //image selected. Add after it
+                var newResult = {images : []};
+                _.forEach(result.images, function(img){
+                    newResult.images.push(img)
+                    if(img.id == selectedImageId)
+                        newResult.images.push({data : request.data, id : getImageId()})
+                })
+                result = newResult;
+            }
 	    	chrome.storage.local.set(result, function (dt) {
-		        console.log("Image stored");
-		        console.log(dt);
 		    });
         });
      	sendResponse({response: "screenshot success"});
@@ -142,13 +267,23 @@ chrome.runtime.onMessage.addListener(
 	        document.head.appendChild(link)
 
 
-	        var link1 = document.createElement('script');var link2 = document.createElement('script');var link3 = document.createElement('script');
-        	link1.src=chrome.runtime.getURL('jquery.min.js');link2.src=chrome.runtime.getURL('FileSaver.js');link3.src=chrome.runtime.getURL('jquery.wordexport.js');
+	        var link1 = document.createElement('script');
+            var link2 = document.createElement('script');
+            var link3 = document.createElement('script');
+            var link4 = document.createElement('script');
+            
+        	link1.src=chrome.runtime.getURL('jquery.min.js');
+            link2.src=chrome.runtime.getURL('FileSaver.js');
+            link4.src=chrome.runtime.getURL('underscore.js');
+            
         	document.head.appendChild(link1);
         	setTimeout(function(){
         		document.head.appendChild(link2);
         		setTimeout(function(){
         			document.head.appendChild(link3);
+                    setTimeout(function(){
+                        document.head.appendChild(link4);
+                    },1000)
         		},1000)
         	},1000);
 	    }
@@ -156,6 +291,7 @@ chrome.runtime.onMessage.addListener(
     }else if(request.action = 'hidePluginTemp'){
     	document.querySelector('#ss_plugin_host_container').style.display = "none"
         document.querySelector('#ss_tools').style.display = "none"
+        document.querySelector('#handlerDiv').style.display = "none"
 	    sendResponse({response: "Plugin hid"});
 
     }

@@ -1,9 +1,10 @@
 {
-    "name": "Screenshot",
+    "name": "EasySS",
+    "author": "Pankaj Prakash Shinde",
     "version": "1.0",
-    "description": "This extension takes screenshottttt",
+    "description": "This Add-In helps you to take screenshot while executing your flow and export them to word file to email it further",
     "manifest_version": 2,
-    "permissions": ["activeTab", "tabs","<all_urls>", "storage"],
+    "permissions": ["tabs","<all_urls>", "storage"],
     "background": {
       "scripts": ["background.js"],
       "persistent": false
@@ -11,16 +12,20 @@
     "content_scripts": [
        {
          "matches": ["<all_urls>"],
-         "js": ["script.js"],
+         "js": ["jquery.min.js", "FileSaver.js", "jquery.wordexport.js", "underscore.js", "script.js"],
          "css": [ "styles.css" ]
        }
     ],
+    "icons": { "16": "icons/icon_on-19.png",
+           "48": "icons/icon_on-19.png",
+          "128": "icons/icon_on-19.png" },
     "browser_action": {
         "default_icon": "icons/icon_off-19.png"
     },
      "web_accessible_resources": [
       "jquery.min.js",
       "FileSaver.js",
-      "jquery.wordexport.js"
+      "jquery.wordexport.js",
+      "underscore.js"
     ]
   }
