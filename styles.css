@@ -1,0 +1,74 @@
+#ss_plugin_host_container{
+	right: 0;
+	top: 35px;
+	width: 15%;
+	background: #008aff;
+	z-index: 99999999999999999;
+    padding: 0 7px 0 7px;
+    height: calc(100% - 35px);
+    position: fixed;
+    overflow-y: auto;
+}
+
+#ss_plugin_host_container .ss_img_div{
+	display: block;
+    width: 100%;
+    height: auto;
+    margin: 7px 0 7px 0;
+    position: relative;
+    border: 1px solid white;
+}
+
+#ss_plugin_host_container .ss_img_div img{
+	width: 100%;
+}
+#ss_plugin_host_container .ss_images{
+	display: block;
+    width: 100%;
+    height: auto;
+    margin: 7px 0 7px 0;
+    position: relative;
+}
+
+#ss_tools{
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 15%;
+    height: 35px;
+    box-shadow: 0px 3px 7px 0px #686565;
+    z-index: 99999999999999999;
+    background: #ffffff;
+    border-width: 2px 2px 0px 2px;
+    border-style: solid;
+    border-color: #008aff;
+    padding: 0px 5px;
+}
+
+#ss_tools ul{
+	display: flex;
+	margin: 0;
+    padding: 0;
+}
+
+#ss_tools a{
+	font-size: 25px;
+	color: #008aff;
+	padding: 5px; 
+}
+
+#ss_tools li{
+	display: block;
+	line-height: 1.4;
+}
+
+#ss_tools #startCapture{
+	color: #2e6da4;
+}
+#ss_tools #stopCapture{
+	color: #d9534f;
+}
+
+#ss_tools #captureManually{
+	color: #449d44;
+}
