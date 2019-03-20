@@ -5,10 +5,15 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
     deleteImageNodes();
     imges.forEach(function(img, index, arr){
         var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');imgDiv.id=img.id;
+        var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
         var imgTag = document.createElement('img');imgTag.src=img.data;
+        imgDiv.appendChild(imgIndex.cloneNode(true));
         imgDiv.appendChild(imgTag.cloneNode(true));
         document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+        console.log(index);
     })
+    var objDiv = document.getElementById("ss_plugin_host_container");
+    objDiv.scrollTop = objDiv.scrollHeight;
     
 });
 
@@ -18,9 +23,9 @@ function getToolsElement(){
 
 	var toolList = document.createElement('ul');
 	toolList.id = "toolList";
-	var buttonList = [/*'fa-play-circle',*/'fa-stop-circle', 'fa-camera', 'fa-file-word', 'fa-trash-alt', 'fa-question-circle'];
+	var buttonList = [/*'fa-play-circle',*/'fa-trash-alt', 'fa-camera', 'fa-file-word', 'fa-minus-square', 'fa-question-circle'];
 	var buttonListClasses = [/*'far',*/'far', 'fas', 'fas', 'far', 'far'];
-    var buttonTooltips = [/*'',*/ 'Clear', 'Capture', 'Export', 'Delete', 'ALT+S : Take Screenshot\nALT+A : Delete Selected Screenshot']
+    var buttonTooltips = [/*'',*/ 'Remove All', 'Capture (ALT+S)', 'Export', 'Remove (ALT+A)', 'ALT+S : Take Screenshot\nALT+A : Remove Selected Screenshot\n\nmail @ Pankaj Shinde (ps00475391@techmahindra.com)']
 	var buttonIds = [/*'startCapture',*/'stopCapture', 'captureManually', 'exportToWord', 'removeSS', 'pluginHelp'];
 	buttonList.forEach(function(className, index, arr){
 		var _li = document.createElement('li');
@@ -58,10 +63,22 @@ function getHandler(){
     handlerAnchor.href="javascript:void(0);";
     
     handlerDiv.id="handlerDiv";
+    handlerDiv.title="Expand Captur";
     handlerAnchor.appendChild(handlerIcon);
     handlerDiv.appendChild(handlerAnchor);
     return handlerDiv;
     
+}
+
+function getLoaderDiv(){
+    var loaderDiv = document.createElement('div');
+    var loaderIcon = document.createElement('i');
+    loaderDiv.id="ss_loader";
+    loaderIcon.classList.add('fas');
+    loaderIcon.classList.add('fa-spinner');
+    loaderIcon.classList.add('fa-spin')
+    loaderDiv.appendChild(loaderIcon);
+    return loaderDiv;
 }
 
 function getImageId(){
@@ -70,13 +87,19 @@ function getImageId(){
 
 function removeSS(){
     var idToDelte = parseInt($(".ss_img_div.selected").attr('id'))
+    document.querySelector('#ss_loader').style.display = "block"
+        
     if(!_.isNaN(idToDelte)){
         deleteImageNodes();
         chrome.storage.local.get('images', function(result) {
             var fliteredImages = _.reject(result.images, function(el) { return el.id === idToDelte; });
-            chrome.storage.local.set({images : fliteredImages});
+            chrome.storage.local.set({images : fliteredImages}, function(){
+                document.querySelector('#ss_loader').style.display = "none"
+            });
 
         })
+    }else{
+        document.querySelector('#ss_loader').style.display = "none"
     }
 }
 
@@ -89,9 +112,15 @@ function addListeners(){
         document.querySelector('#ss_plugin_host_container').style.display = "none"
         document.querySelector('#ss_tools').style.display = "none"
         document.querySelector('#handlerDiv').style.display = "none"
+        document.querySelector('#ss_loader').style.display = "block"
         setTimeout(function(){
-			chrome.runtime.sendMessage({action: 'captureManually'});
-        },10);
+            document.querySelector('#ss_loader').style.display = "none"
+            setTimeout(function(){
+                chrome.runtime.sendMessage({action: 'captureManually'});
+            },10);
+        },200);
+        
+        
     }
     
     var map = {};
@@ -135,19 +164,31 @@ function addListeners(){
 //	});
 
 	document.getElementById("stopCapture").addEventListener('click', function(event){
-		chrome.storage.local.set({images : []}, function (dt) {
+		document.querySelector('#ss_loader').style.display = "block";
+        chrome.storage.local.set({images : []}, function (dt) {
 //			document.querySelector('a#startCapture i').classList = '';
 //			document.querySelector('a#startCapture i').classList.add('far');
 //			document.querySelector('a#startCapture i').classList.add('fa-play-circle');
 	        console.log("Store reinitialised");
+            
 	        deleteImageNodes();
 	        loadPreviousImages();
             chrome.runtime.sendMessage({action: 'capture_status', data: 'stopped'});
+            document.querySelector('#ss_loader').style.display = "none"
 	    });
 	});
     
     document.getElementById("exportToWord").addEventListener('click', function(event){
-		$(".ss_images").wordExport();
+		var fileName = prompt('Enter file name');
+        fileName=fileName.trim();
+        if(fileName!= ""){
+            var content = document.querySelector('#ss_plugin_host_container').innerHTML;
+            var html_document = '<!DOCTYPE html><html><head><title></title>';
+            html_document  += '</head><body>'+content+'</body></html>';
+            var converted = htmlDocx.asBlob(html_document, {orientation: 'landscape'});
+            saveAs(converted, fileName);
+//            $(".ss_images").wordExport(fileName);
+        }
 	});
     
     $("#ss_plugin_host_container").on('click', '.ss_img_div', function(event){
@@ -167,12 +208,14 @@ function addListeners(){
             document.querySelector("#ss_plugin_host_container").style.right="-17%";
             document.querySelector("#ss_tools").style.right="-17%";
             document.querySelector("#handlerDiv").style.right="0";
+            document.querySelector("#handlerDiv").title = "Expand EasySS";
         }else{
             document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-left');
             document.querySelector("#handlerDiv i").classList.add('fa-arrow-right');
-            document.querySelector("#ss_plugin_host_container").style.right="0";
-            document.querySelector("#ss_tools").style.right="0";
+            document.querySelector("#ss_plugin_host_container").style.right="2px";
+            document.querySelector("#ss_tools").style.right="2px";
             document.querySelector("#handlerDiv").style.right="15.9%";
+            document.querySelector("#handlerDiv").title = "Collapse Captur";
         }
 	});
 }
@@ -192,10 +235,14 @@ function loadPreviousImages(){
         chrome.storage.local.get('images', function(result) {
             result.images.forEach(function(img, index, arr){
                 var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
+                var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
                 var imgTag = document.createElement('img');imgTag.src=img.data;
+                imgDiv.appendChild(imgIndex.cloneNode(true));
                 imgDiv.appendChild(imgTag.cloneNode(true));
                 document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
             })
+            var objDiv = document.getElementById("ss_plugin_host_container");
+            objDiv.scrollTop = objDiv.scrollHeight;
         });
     })
 	
@@ -207,9 +254,11 @@ chrome.runtime.onMessage.addListener(
     	if(document.querySelectorAll('#ss_plugin_host_container').length == 0){
 	        var ss_plugin_host_container = document.createElement('div');
 	        ss_plugin_host_container.id='ss_plugin_host_container';
-
+            
 	        ss_plugin_host_container.appendChild(getImagesElement());
-	        document.body.appendChild(getHandler());
+	        
+            document.body.appendChild(getLoaderDiv());
+            document.body.appendChild(getHandler());
             
 	        document.body.appendChild(getToolsElement());
 
@@ -233,6 +282,7 @@ chrome.runtime.onMessage.addListener(
     	document.querySelector('#ss_plugin_host_container').style.display = "block"
         document.querySelector('#ss_tools').style.display = "block"
         document.querySelector('#handlerDiv').style.display = "block"
+        document.querySelector('#ss_loader').style.display = "none"
         var selectedImageId = parseInt($(".ss_img_div.selected").attr('id'))
 //    	var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
 //    	var imgTag = document.createElement('img');imgTag.src=request.data;
@@ -255,6 +305,7 @@ chrome.runtime.onMessage.addListener(
 		    });
         });
      	sendResponse({response: "screenshot success"});
+        
 
     }else if(request.action == "add_dom"){
     	if(document.querySelector("#ss_font_awesome") == null){
@@ -265,27 +316,6 @@ chrome.runtime.onMessage.addListener(
 	        link.integritiy = "sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
 	        link.crossOrigin = "anonymous"
 	        document.head.appendChild(link)
-
-
-	        var link1 = document.createElement('script');
-            var link2 = document.createElement('script');
-            var link3 = document.createElement('script');
-            var link4 = document.createElement('script');
-            
-        	link1.src=chrome.runtime.getURL('jquery.min.js');
-            link2.src=chrome.runtime.getURL('FileSaver.js');
-            link4.src=chrome.runtime.getURL('underscore.js');
-            
-        	document.head.appendChild(link1);
-        	setTimeout(function(){
-        		document.head.appendChild(link2);
-        		setTimeout(function(){
-        			document.head.appendChild(link3);
-                    setTimeout(function(){
-                        document.head.appendChild(link4);
-                    },1000)
-        		},1000)
-        	},1000);
 	    }
 	    sendResponse({response: "added dom"});
     }else if(request.action = 'hidePluginTemp'){

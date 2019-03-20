@@ -1,11 +1,12 @@
 #ss_plugin_host_container{
-	top: 35px;
+	top: 30px;
 	width: 15%;
 /*	background: #008aff;*/
-    background: #303030;
-	z-index: 99999999999999999;
-    padding: 0 7px 0 7px;
-    height: calc(100% - 35px);
+/*    background: #303030;*/
+    background: #ea4335;
+	z-index: 2147483646;
+    padding: 0 6px 0 6px;
+    height: calc(100% - 30px);
     position: fixed;
     overflow-y: auto;
     transition: right 1s;
@@ -14,27 +15,31 @@
 
 #ss_plugin_host_container .ss_img_div{
 	display: block;
-    width: 100%;
-    height: auto;
-    margin: 7px 0 7px 0;
+/*    width: 100%;*/
+    width: 213px;
+    height: 100px;
+    margin: 6px 0 6px 0;
     position: relative;
     border: 1px solid white;
 }
 
 
 #ss_plugin_host_container .ss_img_div img{
-	width: 100%;
+/*	width: 100%;*/
+    width: 213px;
+    height: 100px;
 }
 #ss_plugin_host_container .ss_images{
 	display: block;
-    width: 100%;
+/*    width: 100%;*/
+    width: 213px;
     height: auto;
-    margin: 7px 0 7px 0;
+    margin: 6px 0 6px 0;
     position: relative;
 }
 
 #ss_plugin_host_container .ss_images .ss_img_div.selected{
-    outline: 3px solid #d9534f;
+    outline: #35DCEA solid 5px;
     outline-offset: -3px;   
 }
 
@@ -42,16 +47,18 @@
     position: fixed;
     right: 0;
     top: 0;
-    width: 15%;
-    height: 35px;
+    width: 15.3%;
+    height: 30px;
     box-shadow: 0px 3px 7px 0px #686565;
-    z-index: 99999999999999999;
-    background: #ffffff;
-    border-width: 2px 2px 0px 2px;
-    border-style: solid;
+    z-index: 2147483646;
+    background: #0387b9;
+    border: none;
+/*    border-color: #ea4335;*/
+/*    border-width: 2px 2px 0px 2px;*/
+/*    border-style: solid;*/
 /*    border-color: #008aff;*/
-    border-color: #303030;
-    padding: 0px 5px;
+/*    border-color: #303030;*/
+    padding: 0 4px;
     transition: right 1s;
     right: -17%;
     
@@ -64,16 +71,19 @@
 }
 
 #ss_tools a{
-	font-size: 20px;
-	color: #008aff;
+	font-size: 1.3rem;
+/*	color: #008aff;*/
 	padding: 5px; 
+    color: #fff;
 }
 
 #ss_tools li{
 	display: block;
-	line-height: 1.7;
+/*	line-height: 1.7;*/
+    padding-top: 5px !important;
 }
 
+/*
 #ss_tools a#startCapture{
 	color: #2e6da4;
 }
@@ -92,6 +102,7 @@
 #ss_tools a#pluginHelp{
 	color: #303030;
 }
+*/
 
 /*
 #ss_tools #menuSeparator{
@@ -102,30 +113,37 @@
 }
 */
 
-#ss_tools #li_removeSS, #ss_tools #li_pluginHelp{
+#ss_tools #li_removeSS, #ss_tools #li_pluginHelp, #ss_tools #li_stopCapture{
     right: 0;
     position: absolute;
 }
 
 #ss_tools #li_removeSS{
-    right: 25px;
+    right: 50px;
+}
+
+#ss_tools #li_stopCapture{
+    right: 26px;
 }
 
 
 #handlerDiv{
     position: fixed;
     top: 0px;
-    width: 2%;
+    width: 1%;
     color: white;
-    height: 35px;
+    height: 60px;
+    border-radius: 5px 0px 0px 5px;
     box-shadow: rgb(104, 101, 101) 0px 3px 7px 0px;
-    z-index: 2147483647;
-    background: rgb(48, 48, 48);
+    z-index: 2147483646;
+/*    background: rgb(48, 48, 48);*/
+    top: 50%;
+    background: #ea4335;
     padding: 0px 5px;
     right: 0%;
     font-weight: 700;
     text-align: center;
-    line-height: 2.2;
+/*    line-height: 5.3;*/
     transition: right .9s;
     
 }
@@ -133,4 +151,61 @@
 #handlerDiv a{
     text-decoration: none;
     color: white;
+}
+
+#handlerDiv i{
+    font-size: 1.3rem;
+    top: 20px;
+    position: relative;
+}
+
+#ss_loader{
+    display: none;
+    top: 0;
+    left: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(99, 99, 99, 0.1);
+    z-index: 2147483647;
+}
+
+#ss_loader i{
+    font-size: 30px;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+}
+
+
+/* width */
+#ss_plugin_host_container ::-webkit-scrollbar {
+  width: .8em;
+}
+
+/* Track */
+#ss_plugin_host_container ::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey; 
+  border-radius: 10px;
+}
+ 
+/* Handle */
+#ss_plugin_host_container ::-webkit-scrollbar-thumb {
+  background: #0074d9; 
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+#ss_plugin_host_container ::-webkit-scrollbar-thumb:hover {
+  background: #2a3b4c; 
+}
+
+.imgIndex{
+    background: rgba(0,0,0,.15);
+    position: absolute;
+    border-radius: 5px;
+    font-weight: 700;
+    padding-left: 2px;
+    padding-right: 2px;
+    text-align: center;
 }
