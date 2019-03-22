@@ -13,7 +13,7 @@
        {
          "matches": ["<all_urls>"],
          "js": ["jquery.min.js", "js/FileSaver.js", "js/html-docx.js", "underscore.js", "script.js"],
-         "css": [ "styles.css" ]
+         "css": [ "css.css" ]
        }
     ],
     "icons": { "16": "icons/icon_on-19.png",

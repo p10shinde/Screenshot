@@ -11,7 +11,7 @@ function captureAndSend(){
     chrome.tabs.captureVisibleTab(null, {format:'jpeg',quality : 100}, function (image) {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
             for (var i=0; i<tabs.length; ++i) {
-                chrome.tabs.sendMessage(tabs[i].id, {action: "captureManuallyResponse", status: status, data: image}, function(response) {console.log(response)});  
+                chrome.tabs.sendMessage(tabs[i].id, {action: "captureManuallyResponse", status: status, data: image}, function(response) {});  
             }
         });
     });
@@ -20,7 +20,7 @@ function captureAndSend(){
 function hidePluginTemp(){
     chrome.tabs.query({/*active: true, */currentWindow: true}, function(tabs){
         for (var i=0; i<tabs.length; ++i) {
-            chrome.tabs.sendMessage(tabs[i].id, {action: "hidePluginTemp"}, function(response) {console.log(response)});
+            chrome.tabs.sendMessage(tabs[i].id, {action: "hidePluginTemp"}, function(response) {});
         }
     });
 }
@@ -49,8 +49,7 @@ function toggle_extension(tab){
     // chrome.tabs.captureVisibleTab(null, {}, function (image) {
         chrome.tabs.query({/*active: true,*/ currentWindow: true}, function(tabs){
             for (var i=0; i<tabs.length; ++i) {
-//                console.log(tabs[i])
-                chrome.tabs.sendMessage(tabs[i].id, {action: "toggle_extension", status: status, data: ''}, function(response) {console.log(response)});  
+                chrome.tabs.sendMessage(tabs[i].id, {action: "toggle_extension", status: status, data: ''}, function(response) {});  
             }
         });
     // });
@@ -59,14 +58,13 @@ function toggle_extension(tab){
 function addDom(){
     chrome.tabs.query({/*active: true, */currentWindow: true}, function(tabs){
         for (var i=0; i<tabs.length; ++i) {
-            chrome.tabs.sendMessage(tabs[i].id, {action: "add_dom"}, function(response) {console.log(response)});  
+            chrome.tabs.sendMessage(tabs[i].id, {action: "add_dom"}, function(response) {});  
         }
     });
 }
 
 function my_listener(tabId, changeInfo, tab) {
     // If updated tab matches this one
-    console.log(tab)
     if (changeInfo.status == "complete"){
         if (status == 'on' && tab.url.search('chrome://') != 0 && (the_tab_id == '' || the_tab_id == tab.windowId)) {
             toggle_extension(tab);
@@ -80,10 +78,25 @@ function my_listener(tabId, changeInfo, tab) {
 }
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-    set_status();
-    toggle_extension(tab);
-    addDom();
+    if(tab.title != "New Tab"){
+        if(tab.status == "complete"){
+            set_status();
+            toggle_extension(tab);
+            addDom();
+        }else{
+            alert('Please wait while page loads...')
+        }
+    }else{
+        alert('Not Allowed');
+    }
     
 });
 
 chrome.tabs.onUpdated.addListener(my_listener);
+
+//listen for new tab to be activated
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+    toggle_extension({id: activeInfo.tabId});
+});
+
+// chrome.windows.onRemoved(function(ext){console.log(ext)})

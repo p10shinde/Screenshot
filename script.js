@@ -10,26 +10,26 @@ function resizedataURL(datas, wantedWidth, wantedHeight) {
 
         // When the event "onload" is triggered we can resize the image.
         img.onload = function()
-            {        
-                // We create a canvas and get its context.
-                var canvas = document.createElement('canvas');
-                var ctx = canvas.getContext('2d');
+        {        
+            // We create a canvas and get its context.
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
 
-                // We set the dimensions at the wanted size.
-                canvas.width = wantedWidth;
-                canvas.height = wantedHeight;
+            // We set the dimensions at the wanted size.
+            canvas.width = wantedWidth;
+            canvas.height = wantedHeight;
 
-                // We resize the image with the canvas method drawImage();
-                ctx.drawImage(this, 0, 0, wantedWidth, wantedHeight);
+            // We resize the image with the canvas method drawImage();
+            ctx.drawImage(this, 0, 0, wantedWidth, wantedHeight);
 
-                var dataURI = canvas.toDataURL();
+            var dataURI = canvas.toDataURL();
 
-                /////////////////////////////////////////
-                // Use and treat your Data URI here !! //
-                /////////////////////////////////////////
-                // return dataURI;
-                resolve(dataURI);
-            };
+            /////////////////////////////////////////
+            // Use and treat your Data URI here !! //
+            /////////////////////////////////////////
+            // return dataURI;
+            resolve(dataURI);
+        };
 
         // We put the Data URI in the image's src attribute
         
@@ -39,34 +39,70 @@ function resizedataURL(datas, wantedWidth, wantedHeight) {
     });
 }
 
+// function b64toBlob(b64Data, contentType, sliceSize) {
+//     contentType = contentType || '';
+//     sliceSize = sliceSize || 512;
+  
+//     var byteCharacters = atob(b64Data);
+//     var byteArrays = [];
+  
+//     for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+//       var slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+//       var byteNumbers = new Array(slice.length);
+//       for (var i = 0; i < slice.length; i++) {
+//         byteNumbers[i] = slice.charCodeAt(i);
+//       }
+  
+//       var byteArray = new Uint8Array(byteNumbers);
+  
+//       byteArrays.push(byteArray);
+//     }
+  
+//     var blob = new Blob(byteArrays, {type: contentType});
+//     return blob;
+//   }
+  
+// function resizedataURL(datas){
+//     return new Promise(function(resolve, reject) {
+//         var blob = new Compressor(b64toBlob(datas.split(",")[1],'image/png',512),{width: 770, height: 475, quality: 0.5});
+//         var reader = new FileReader();
+//         reader.readAsDataURL(blob.file); 
+//         reader.onloadend = function() {
+//             resolve(reader.result);
+//         }
+//     });
+// }
+        
 chrome.storage.onChanged.addListener(function(changes, namespace) {
     var imges = changes['images']['newValue'];
+    document.querySelector('.ss_loader').style.display = "block"
     deleteImageNodes();
-    document.querySelector('#ss_loader').style.display = "block"
     imges.forEach(function(img, index, arr){
-        resizedataURL(img.data,resizeImageWidth,resizeImageHeight).then(function(res){
+        resizedataURL(img.data, resizeImageWidth, resizeImageHeight).then(function(res){
             var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');imgDiv.id=img.id;
-            var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
+            var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');
+            var imgIndexSpan = document.createElement('span');imgIndexSpan.innerText=index+1;
             var imgTag = document.createElement('img');//img.data;
             imgTag.src=res
+            imgIndex.appendChild(imgIndexSpan.cloneNode(true));
             imgDiv.appendChild(imgIndex.cloneNode(true));
             imgDiv.appendChild(imgTag.cloneNode(true));
-            document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+            document.querySelector('.ss_main_container .ss_images').appendChild(imgDiv.cloneNode(true))
             console.log(index);
-            var objDiv = document.getElementById("ss_plugin_host_container");
+            var objDiv = document.querySelectorAll(".ss_main_container .ss_images")[0];
             objDiv.scrollTop = objDiv.scrollHeight;
         })
-        document.querySelector('#ss_plugin_host_container').style.display = "block"
-        document.querySelector('#ss_tools').style.display = "block"
+        document.querySelector('.ss_main_container').style.display = "block"
         
     })
-    document.querySelector('#ss_loader').style.display = "none"
+    document.querySelector('.ss_loader').style.display = "none"
     
 });
 
 function getToolsElement(){
 	var elTools = document.createElement('div');
-	elTools.id = 'ss_tools';
+    elTools.classList.add('ss_tools');
 
 	var toolList = document.createElement('ul');
 	toolList.id = "toolList";
@@ -106,11 +142,11 @@ function getHandler(){
     var handlerIcon = document.createElement('i');
     var handlerAnchor = document.createElement('a');
     handlerIcon.classList.add('fas');
-    handlerIcon.classList.add('fa-arrow-left');
+    handlerIcon.classList.add('fa-arrow-right');
     handlerAnchor.href="javascript:void(0);";
     
-    handlerDiv.id="handlerDiv";
-    handlerDiv.title="Expand Captur";
+    handlerDiv.classList.add("ss_handler");
+    handlerDiv.title="Collapse Captur";
     handlerAnchor.appendChild(handlerIcon);
     handlerDiv.appendChild(handlerAnchor);
     return handlerDiv;
@@ -120,10 +156,10 @@ function getHandler(){
 function getLoaderDiv(){
     var loaderDiv = document.createElement('div');
     var loaderIcon = document.createElement('i');
-    loaderDiv.id="ss_loader";
+    loaderDiv.classList.add("ss_loader");
     loaderIcon.classList.add('fas');
     loaderIcon.classList.add('fa-spinner');
-    loaderIcon.classList.add('fa-spin')
+    loaderIcon.classList.add('fa-spin');
     loaderDiv.appendChild(loaderIcon);
     return loaderDiv;
 }
@@ -134,19 +170,19 @@ function getImageId(){
 
 function removeSS(){
     var idToDelte = parseInt($(".ss_img_div.selected").attr('id'))
-    document.querySelector('#ss_loader').style.display = "block"
+    document.querySelector('.ss_loader').style.display = "block"
         
     if(!_.isNaN(idToDelte)){
         deleteImageNodes();
         chrome.storage.local.get('images', function(result) {
             var fliteredImages = _.reject(result.images, function(el) { return el.id === idToDelte; });
             chrome.storage.local.set({images : fliteredImages}, function(){
-                document.querySelector('#ss_loader').style.display = "none"
+                document.querySelector('.ss_loader').style.display = "none"
             });
 
         })
     }else{
-        document.querySelector('#ss_loader').style.display = "none"
+        document.querySelector('.ss_loader').style.display = "none"
     }
 }
 
@@ -156,12 +192,11 @@ function showPluginHelp(){
 
 function addListeners(){
     function captureManually(){
-        document.querySelector('#ss_plugin_host_container').style.display = "none"
-        document.querySelector('#ss_tools').style.display = "none"
+        document.querySelector('.ss_main_container').style.display = "none"
         // document.querySelector('#handlerDiv').style.display = "none"
-        document.querySelector('#ss_loader').style.display = "block"
+        document.querySelector('.ss_loader').style.display = "block"
         setTimeout(function(){
-            document.querySelector('#ss_loader').style.display = "none"
+            document.querySelector('.ss_loader').style.display = "none"
             setTimeout(function(){
                 chrome.runtime.sendMessage({action: 'captureManually'});
             },10);
@@ -211,7 +246,7 @@ function addListeners(){
 //	});
 
 	document.getElementById("stopCapture").addEventListener('click', function(event){
-		document.querySelector('#ss_loader').style.display = "block";
+		document.querySelector('.ss_loader').style.display = "block";
         chrome.storage.local.set({images : []}, function (dt) {
 //			document.querySelector('a#startCapture i').classList = '';
 //			document.querySelector('a#startCapture i').classList.add('far');
@@ -221,7 +256,7 @@ function addListeners(){
 	        deleteImageNodes();
 	        loadPreviousImages();
             chrome.runtime.sendMessage({action: 'capture_status', data: 'stopped'});
-            document.querySelector('#ss_loader').style.display = "none"
+            document.querySelector('.ss_loader').style.display = "none"
 	    });
 	});
     
@@ -229,7 +264,7 @@ function addListeners(){
 		var fileName = prompt('Enter word file to export the images');
         fileName=fileName.trim();
         if(fileName!= ""){
-            var content = document.querySelector('#ss_plugin_host_container').innerHTML;
+            var content = document.querySelector('.ss_main_container .ss_images').innerHTML;
             var html_document = '<!DOCTYPE html><html><head><title></title>';
             html_document  += '</head><body>'+content+'</body></html>';
             var converted = htmlDocx.asBlob(html_document, {orientation: 'portait', margins: {header: 0, footer: 0, left:360, right: 360, top: 100, bottom: 100}});
@@ -238,7 +273,7 @@ function addListeners(){
         }
 	});
     
-    $("#ss_plugin_host_container").on('click', '.ss_img_div', function(event){
+    $(".ss_main_container").on('click', '.ss_img_div', function(event){
 		$(".ss_img_div").removeClass('selected');
         $(this).addClass('selected');
 	});
@@ -247,28 +282,26 @@ function addListeners(){
     
     document.getElementById("pluginHelp").addEventListener('click', showPluginHelp);
     
-    document.getElementById("handlerDiv").addEventListener('click', function(event){
+    document.getElementsByClassName("ss_handler")[0].addEventListener('click', function(event){
 		
-        if(document.querySelector("#handlerDiv i").classList.contains('fa-arrow-right')){
-            document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-right');
-            document.querySelector("#handlerDiv i").classList.add('fa-arrow-left');
-            document.querySelector("#ss_plugin_host_container").style.right="-17%";
-            document.querySelector("#ss_tools").style.right="-17%";
-            document.querySelector("#handlerDiv").style.right="0";
-            document.querySelector("#handlerDiv").title = "Expand Captur";
+        if(document.querySelector(".ss_handler i").classList.contains('fa-arrow-right')){
+            document.querySelector(".ss_handler i").classList.toggle('fa-arrow-right');
+            document.querySelector(".ss_handler i").classList.add('fa-arrow-left');
+
+            document.querySelector(".ss_main_container").style.right="180px";
+            document.querySelector(".ss_handler").title = "Expand Captur";
         }else{
-            document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-left');
-            document.querySelector("#handlerDiv i").classList.add('fa-arrow-right');
-            document.querySelector("#ss_plugin_host_container").style.right="0px";
-            document.querySelector("#ss_tools").style.right="0px";
-            document.querySelector("#handlerDiv").style.right="219px";
-            document.querySelector("#handlerDiv").title = "Collapse Captur";
+            document.querySelector(".ss_handler i").classList.toggle('fa-arrow-left');
+            document.querySelector(".ss_handler i").classList.add('fa-arrow-right');
+
+            document.querySelector(".ss_main_container").style.right="430px";
+            document.querySelector(".ss_handler").title = "Collapse Captur";
         }
 	});
 }
 
 function deleteImageNodes(){
-	var imagesList = document.querySelector("#ss_plugin_host_container .ss_images");
+	var imagesList = document.querySelector(".ss_main_container .ss_images");
 	while (imagesList.firstChild) {
 	    imagesList.removeChild(imagesList.firstChild);
 	}
@@ -279,24 +312,26 @@ function loadPreviousImages(){
         if(Object.entries(dt).length === 0 && dt.constructor === Object){
             chrome.storage.local.set({images : []}, function (dt) {})
         }
-        document.querySelector('#ss_loader').style.display = "block";
+        document.querySelector('.ss_loader').style.display = "block";
         chrome.storage.local.get('images', function(result) {
             result.images.forEach(function(img, index, arr){
-                resizedataURL(img.data,resizeImageWidth,resizeImageHeight).then(function(res){
+                resizedataURL(img.data, resizeImageWidth, resizeImageHeight).then(function(res){
                     var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
-                    var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
+                    var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');
+                    var imgIndexSpan = document.createElement('span');imgIndexSpan.innerText=index+1;
                     var imgTag = document.createElement('img');
                     imgTag.src=res//img.data;
+                    imgIndex.appendChild(imgIndexSpan.cloneNode(true));
                     imgDiv.appendChild(imgIndex.cloneNode(true));
                     imgDiv.appendChild(imgTag.cloneNode(true));
-                    document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
-                    var objDiv = document.getElementById("ss_plugin_host_container");
+                    document.querySelector('.ss_main_container .ss_images').appendChild(imgDiv.cloneNode(true))
+                    var objDiv = document.querySelectorAll(".ss_main_container .ss_images")[0];
                     objDiv.scrollTop = objDiv.scrollHeight;
                 });
             })
         });
         
-        document.querySelector('#ss_loader').style.display = "none";
+        document.querySelector('.ss_loader').style.display = "none";
     })
 	
 
@@ -304,44 +339,31 @@ function loadPreviousImages(){
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if(request.action == "toggle_extension"){
-    	if(document.querySelectorAll('#ss_plugin_host_container').length == 0){
-	        var ss_plugin_host_container = document.createElement('div');
-	        ss_plugin_host_container.id='ss_plugin_host_container';
-            
-            ss_plugin_host_container.appendChild(getImagesElement());
-	        ss_plugin_host_container.appendChild(getHandler());
-	        
+    	if(document.querySelectorAll('.ss_main_container').length == 0){
+            var ss_main_container = document.createElement('div');
+            ss_main_container.classList.add('ss_main_container');
+
+            ss_main_container.appendChild(getToolsElement());
+            ss_main_container.appendChild(getImagesElement());
+            ss_main_container.appendChild(getHandler());
+
+            document.body.appendChild(ss_main_container);
             document.body.appendChild(getLoaderDiv());
-            // document.body.appendChild(getHandler());
-            
-	        document.body.appendChild(getToolsElement());
 
-	        document.body.appendChild(ss_plugin_host_container);
+            addListeners();
 
-	        addListeners();
-
-	        loadPreviousImages();
+            loadPreviousImages();
 	    }
 	    if(request.status === 'on'){
-	        document.querySelector('#ss_plugin_host_container').style.display = "block"
-	        document.querySelector('#ss_tools').style.display = "block"
-            // document.querySelector('#handlerDiv').style.display = "block"
+	        document.querySelector('.ss_main_container').style.display = "block"
 	    }else{
-	        document.querySelector('#ss_plugin_host_container').style.display = "none"
-	        document.querySelector('#ss_tools').style.display = "none"
-            // document.querySelector('#handlerDiv').style.display = "none"
+	        document.querySelector('.ss_main_container').style.display = "none"
 	    }
 	    sendResponse({response: "toggled"});
     }else if(request.action == "captureManuallyResponse"){
-    	// document.querySelector('#ss_plugin_host_container').style.display = "block"
-        // document.querySelector('#ss_tools').style.display = "block"
-        // document.querySelector('#handlerDiv').style.display = "block"
-        document.querySelector('#ss_loader').style.display = "block"
+        document.querySelector('.ss_loader').style.display = "block"
         var selectedImageId = parseInt($(".ss_img_div.selected").attr('id'))
-//    	var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
-//    	var imgTag = document.createElement('img');imgTag.src=request.data;
-//    	imgDiv.appendChild(imgTag.cloneNode(true));
-//    	document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+
     	chrome.storage.local.get('images', function(result) {
             console.log(result)
             if(_.isNaN(parseInt($(".ss_img_div.selected").attr('id')))){ //No image selected. Add to end
@@ -373,9 +395,7 @@ chrome.runtime.onMessage.addListener(
 	    }
 	    sendResponse({response: "added dom"});
     }else if(request.action = 'hidePluginTemp'){
-    	document.querySelector('#ss_plugin_host_container').style.display = "none"
-        document.querySelector('#ss_tools').style.display = "none"
-        // document.querySelector('#handlerDiv').style.display = "none"
+    	document.querySelector('.ss_main_container').style.display = "none"
 	    sendResponse({response: "Plugin hid"});
 
     }
