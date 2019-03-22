@@ -1,19 +1,66 @@
 // chrome.runtime.sendMessage({message: 'Hello'});
+const resizeImageWidth = 770;
+const resizeImageHeight = 475;
+
+
+function resizedataURL(datas, wantedWidth, wantedHeight) {
+    return new Promise(function(resolve, reject) {
+        // We create an image to receive the Data URI
+        var img = document.createElement('img');
+
+        // When the event "onload" is triggered we can resize the image.
+        img.onload = function()
+            {        
+                // We create a canvas and get its context.
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+
+                // We set the dimensions at the wanted size.
+                canvas.width = wantedWidth;
+                canvas.height = wantedHeight;
+
+                // We resize the image with the canvas method drawImage();
+                ctx.drawImage(this, 0, 0, wantedWidth, wantedHeight);
+
+                var dataURI = canvas.toDataURL();
+
+                /////////////////////////////////////////
+                // Use and treat your Data URI here !! //
+                /////////////////////////////////////////
+                // return dataURI;
+                resolve(dataURI);
+            };
+
+        // We put the Data URI in the image's src attribute
+        
+            img.src = datas;
+
+
+    });
+}
 
 chrome.storage.onChanged.addListener(function(changes, namespace) {
     var imges = changes['images']['newValue'];
     deleteImageNodes();
+    document.querySelector('#ss_loader').style.display = "block"
     imges.forEach(function(img, index, arr){
-        var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');imgDiv.id=img.id;
-        var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
-        var imgTag = document.createElement('img');imgTag.src=img.data;
-        imgDiv.appendChild(imgIndex.cloneNode(true));
-        imgDiv.appendChild(imgTag.cloneNode(true));
-        document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
-        console.log(index);
+        resizedataURL(img.data,resizeImageWidth,resizeImageHeight).then(function(res){
+            var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');imgDiv.id=img.id;
+            var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
+            var imgTag = document.createElement('img');//img.data;
+            imgTag.src=res
+            imgDiv.appendChild(imgIndex.cloneNode(true));
+            imgDiv.appendChild(imgTag.cloneNode(true));
+            document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+            console.log(index);
+            var objDiv = document.getElementById("ss_plugin_host_container");
+            objDiv.scrollTop = objDiv.scrollHeight;
+        })
+        document.querySelector('#ss_plugin_host_container').style.display = "block"
+        document.querySelector('#ss_tools').style.display = "block"
+        
     })
-    var objDiv = document.getElementById("ss_plugin_host_container");
-    objDiv.scrollTop = objDiv.scrollHeight;
+    document.querySelector('#ss_loader').style.display = "none"
     
 });
 
@@ -111,7 +158,7 @@ function addListeners(){
     function captureManually(){
         document.querySelector('#ss_plugin_host_container').style.display = "none"
         document.querySelector('#ss_tools').style.display = "none"
-        document.querySelector('#handlerDiv').style.display = "none"
+        // document.querySelector('#handlerDiv').style.display = "none"
         document.querySelector('#ss_loader').style.display = "block"
         setTimeout(function(){
             document.querySelector('#ss_loader').style.display = "none"
@@ -179,13 +226,13 @@ function addListeners(){
 	});
     
     document.getElementById("exportToWord").addEventListener('click', function(event){
-		var fileName = prompt('Enter file name');
+		var fileName = prompt('Enter word file to export the images');
         fileName=fileName.trim();
         if(fileName!= ""){
             var content = document.querySelector('#ss_plugin_host_container').innerHTML;
             var html_document = '<!DOCTYPE html><html><head><title></title>';
             html_document  += '</head><body>'+content+'</body></html>';
-            var converted = htmlDocx.asBlob(html_document, {orientation: 'landscape'});
+            var converted = htmlDocx.asBlob(html_document, {orientation: 'portait', margins: {header: 0, footer: 0, left:360, right: 360, top: 100, bottom: 100}});
             saveAs(converted, fileName);
 //            $(".ss_images").wordExport(fileName);
         }
@@ -208,13 +255,13 @@ function addListeners(){
             document.querySelector("#ss_plugin_host_container").style.right="-17%";
             document.querySelector("#ss_tools").style.right="-17%";
             document.querySelector("#handlerDiv").style.right="0";
-            document.querySelector("#handlerDiv").title = "Expand EasySS";
+            document.querySelector("#handlerDiv").title = "Expand Captur";
         }else{
             document.querySelector("#handlerDiv i").classList.toggle('fa-arrow-left');
             document.querySelector("#handlerDiv i").classList.add('fa-arrow-right');
-            document.querySelector("#ss_plugin_host_container").style.right="2px";
-            document.querySelector("#ss_tools").style.right="2px";
-            document.querySelector("#handlerDiv").style.right="15.9%";
+            document.querySelector("#ss_plugin_host_container").style.right="0px";
+            document.querySelector("#ss_tools").style.right="0px";
+            document.querySelector("#handlerDiv").style.right="219px";
             document.querySelector("#handlerDiv").title = "Collapse Captur";
         }
 	});
@@ -232,18 +279,24 @@ function loadPreviousImages(){
         if(Object.entries(dt).length === 0 && dt.constructor === Object){
             chrome.storage.local.set({images : []}, function (dt) {})
         }
+        document.querySelector('#ss_loader').style.display = "block";
         chrome.storage.local.get('images', function(result) {
             result.images.forEach(function(img, index, arr){
-                var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
-                var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
-                var imgTag = document.createElement('img');imgTag.src=img.data;
-                imgDiv.appendChild(imgIndex.cloneNode(true));
-                imgDiv.appendChild(imgTag.cloneNode(true));
-                document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+                resizedataURL(img.data,resizeImageWidth,resizeImageHeight).then(function(res){
+                    var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
+                    var imgIndex = document.createElement('div');imgIndex.classList.add('imgIndex');imgIndex.innerText=index+1;
+                    var imgTag = document.createElement('img');
+                    imgTag.src=res//img.data;
+                    imgDiv.appendChild(imgIndex.cloneNode(true));
+                    imgDiv.appendChild(imgTag.cloneNode(true));
+                    document.querySelector('#ss_plugin_host_container .ss_images').appendChild(imgDiv.cloneNode(true))
+                    var objDiv = document.getElementById("ss_plugin_host_container");
+                    objDiv.scrollTop = objDiv.scrollHeight;
+                });
             })
-            var objDiv = document.getElementById("ss_plugin_host_container");
-            objDiv.scrollTop = objDiv.scrollHeight;
         });
+        
+        document.querySelector('#ss_loader').style.display = "none";
     })
 	
 
@@ -255,10 +308,11 @@ chrome.runtime.onMessage.addListener(
 	        var ss_plugin_host_container = document.createElement('div');
 	        ss_plugin_host_container.id='ss_plugin_host_container';
             
-	        ss_plugin_host_container.appendChild(getImagesElement());
+            ss_plugin_host_container.appendChild(getImagesElement());
+	        ss_plugin_host_container.appendChild(getHandler());
 	        
             document.body.appendChild(getLoaderDiv());
-            document.body.appendChild(getHandler());
+            // document.body.appendChild(getHandler());
             
 	        document.body.appendChild(getToolsElement());
 
@@ -271,18 +325,18 @@ chrome.runtime.onMessage.addListener(
 	    if(request.status === 'on'){
 	        document.querySelector('#ss_plugin_host_container').style.display = "block"
 	        document.querySelector('#ss_tools').style.display = "block"
-            document.querySelector('#handlerDiv').style.display = "block"
+            // document.querySelector('#handlerDiv').style.display = "block"
 	    }else{
 	        document.querySelector('#ss_plugin_host_container').style.display = "none"
 	        document.querySelector('#ss_tools').style.display = "none"
-            document.querySelector('#handlerDiv').style.display = "none"
+            // document.querySelector('#handlerDiv').style.display = "none"
 	    }
 	    sendResponse({response: "toggled"});
     }else if(request.action == "captureManuallyResponse"){
-    	document.querySelector('#ss_plugin_host_container').style.display = "block"
-        document.querySelector('#ss_tools').style.display = "block"
-        document.querySelector('#handlerDiv').style.display = "block"
-        document.querySelector('#ss_loader').style.display = "none"
+    	// document.querySelector('#ss_plugin_host_container').style.display = "block"
+        // document.querySelector('#ss_tools').style.display = "block"
+        // document.querySelector('#handlerDiv').style.display = "block"
+        document.querySelector('#ss_loader').style.display = "block"
         var selectedImageId = parseInt($(".ss_img_div.selected").attr('id'))
 //    	var imgDiv = document.createElement('div');imgDiv.classList.add('ss_img_div');
 //    	var imgTag = document.createElement('img');imgTag.src=request.data;
@@ -321,7 +375,7 @@ chrome.runtime.onMessage.addListener(
     }else if(request.action = 'hidePluginTemp'){
     	document.querySelector('#ss_plugin_host_container').style.display = "none"
         document.querySelector('#ss_tools').style.display = "none"
-        document.querySelector('#handlerDiv').style.display = "none"
+        // document.querySelector('#handlerDiv').style.display = "none"
 	    sendResponse({response: "Plugin hid"});
 
     }

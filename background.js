@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 function captureAndSend(){
     chrome.tabs.captureVisibleTab(null, {format:'jpeg',quality : 100}, function (image) {
-        chrome.tabs.query({/*active: true,*/ currentWindow: true}, function(tabs){
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
             for (var i=0; i<tabs.length; ++i) {
                 chrome.tabs.sendMessage(tabs[i].id, {action: "captureManuallyResponse", status: status, data: image}, function(response) {console.log(response)});  
             }
